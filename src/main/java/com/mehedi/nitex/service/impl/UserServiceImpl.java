@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     // find user by username
     @Override
-    public User findUserByUsername(String username) {
+    public User findUserByUsername(String username)  {
         return userRepository.findUserByUsername(username);
     }
 
@@ -80,6 +80,25 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public User findUserByEmail(String email) {
         return userRepository.findUserByEmail(email);
+    }
+
+    // check and throw an exceptions
+    @Override
+    public User checkUserExist(String username) throws UserNotFoundException {
+        User user = findUserByUsername(username);
+        if(user == null) throw new UserNotFoundException("User Not found");
+        return user;
+    }
+
+    // update user
+    @Override
+    public User updateUser(String currentUsername, String newFullName, String newUsername, String newEmail) throws UserNotFoundException, UsernameExistException, EmailExistException{
+        User currentUser = validateNewUsernameAndEmail(currentUsername, newUsername, newEmail);
+        currentUser.setFullName(newFullName);
+        currentUser.setUsername(newUsername);
+        currentUser.setEmail(newEmail);
+        userRepository.save(currentUser);
+        return currentUser;
     }
 
     // encoded password

@@ -4,14 +4,12 @@ import com.mehedi.nitex.exceptions.ExceptionHandling;
 import com.mehedi.nitex.exceptions.model.EmailExistException;
 import com.mehedi.nitex.exceptions.model.UserNotFoundException;
 import com.mehedi.nitex.exceptions.model.UsernameExistException;
-import com.mehedi.nitex.model.HttpResponse;
 import com.mehedi.nitex.model.User;
 import com.mehedi.nitex.model.UserPrincipal;
 import com.mehedi.nitex.service.UserService;
 import com.mehedi.nitex.util.JWTTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,16 +34,15 @@ public class UserController extends ExceptionHandling {
 
     // register user
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) throws UserNotFoundException, EmailExistException, UsernameExistException {
+    public ResponseEntity<User> registerUser(@RequestBody User user) throws EmailExistException, UsernameExistException, UserNotFoundException {
         User newUser = userService.register(user.getFullName(), user.getUsername(), user.getEmail(), user.getPassword());
         return new ResponseEntity<>(newUser, OK);
     }
 
     // login user
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody User user) {
-        User loginUser = userService.findUserByUsername(user.getUsername());
-        System.out.println("Name" + loginUser.getFullName());
+    public ResponseEntity<User> login(@RequestBody User user) throws UserNotFoundException {
+        User loginUser = userService.checkUserExist(user.getUsername());
         UserPrincipal userPrincipal = new UserPrincipal(loginUser);
         HttpHeaders jwtHeader = getJwtHeader(userPrincipal);
         return new ResponseEntity<>(loginUser, jwtHeader, OK);
@@ -53,15 +50,17 @@ public class UserController extends ExceptionHandling {
 
     // get current user profile
     @GetMapping("/profile")
-    public ResponseEntity<User> getUser(Principal principal) {
-        User user = userService.findUserByUsername(principal.getName());
+    public ResponseEntity<User> getUser(Principal principal) throws UserNotFoundException {
+        User user = userService.checkUserExist(principal.getName());
         return new ResponseEntity<>(user, OK);
     }
 
-    // custom response
-    private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
-        return new ResponseEntity<>(new HttpResponse(httpStatus.value(), httpStatus, httpStatus.getReasonPhrase().toUpperCase(),
-                message), httpStatus);
+    // update user
+    @PutMapping("/update")
+    public ResponseEntity<User> update(@RequestBody User user,Principal principal
+    ) throws UserNotFoundException, UsernameExistException, EmailExistException {
+        User updatedUser = userService.updateUser(principal.getName(), user.getFullName(), user.getUsername(), user.getEmail());
+        return new ResponseEntity<>(updatedUser, OK);
     }
 
     // get jwt token
