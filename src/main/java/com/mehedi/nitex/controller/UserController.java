@@ -1,10 +1,7 @@
 package com.mehedi.nitex.controller;
 
 import com.mehedi.nitex.exceptions.ExceptionHandling;
-import com.mehedi.nitex.exceptions.model.EmailExistException;
-import com.mehedi.nitex.exceptions.model.NotFoundException;
-import com.mehedi.nitex.exceptions.model.UserNotFoundException;
-import com.mehedi.nitex.exceptions.model.UsernameExistException;
+import com.mehedi.nitex.exceptions.model.*;
 import com.mehedi.nitex.model.Book;
 import com.mehedi.nitex.model.User;
 import com.mehedi.nitex.model.UserPrincipal;
@@ -62,6 +59,14 @@ public class UserController extends ExceptionHandling {
     public ResponseEntity<User> update(@RequestBody User user, Principal principal
     ) throws UserNotFoundException, UsernameExistException, EmailExistException {
         User updatedUser = userService.updateUser(principal.getName(), user.getFullName(), user.getUsername(), user.getEmail());
+        return new ResponseEntity<>(updatedUser, OK);
+    }
+
+    // change password
+    @PutMapping("/change-password")
+    public ResponseEntity<User> changePassword(@RequestParam(name = "currentPassword") String currentPassword, @RequestParam(name = "newPassword") String newPassword, Principal principal
+    ) throws UserNotFoundException, PasswordNotMatchException {
+        User updatedUser = userService.changePassword(principal.getName(), currentPassword, newPassword);
         return new ResponseEntity<>(updatedUser, OK);
     }
 

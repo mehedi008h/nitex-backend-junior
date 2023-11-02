@@ -1,9 +1,6 @@
 package com.mehedi.nitex.service.impl;
 
-import com.mehedi.nitex.exceptions.model.EmailExistException;
-import com.mehedi.nitex.exceptions.model.NotFoundException;
-import com.mehedi.nitex.exceptions.model.UserNotFoundException;
-import com.mehedi.nitex.exceptions.model.UsernameExistException;
+import com.mehedi.nitex.exceptions.model.*;
 import com.mehedi.nitex.model.Book;
 import com.mehedi.nitex.model.User;
 import com.mehedi.nitex.model.UserPrincipal;
@@ -104,6 +101,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         currentUser.setEmail(newEmail);
         userRepository.save(currentUser);
         return currentUser;
+    }
+
+    // change password
+    @Override
+    public User changePassword(String username, String currentPassword, String newPassword) throws UserNotFoundException, PasswordNotMatchException {
+        User user = checkUserExist(username);
+        if(!user.getPassword().equals(currentPassword)){
+            throw new PasswordNotMatchException("Password not match");
+        }
+        user.setPassword(encodePassword(newPassword));
+        userRepository.save(user);
+        return user;
     }
 
     // add book in user collection
