@@ -1,11 +1,14 @@
 package com.mehedi.nitex.service.impl;
 
 import com.mehedi.nitex.exceptions.model.EmailExistException;
+import com.mehedi.nitex.exceptions.model.NotFoundException;
 import com.mehedi.nitex.exceptions.model.UserNotFoundException;
 import com.mehedi.nitex.exceptions.model.UsernameExistException;
+import com.mehedi.nitex.model.Book;
 import com.mehedi.nitex.model.User;
 import com.mehedi.nitex.model.UserPrincipal;
 import com.mehedi.nitex.repository.UserRepository;
+import com.mehedi.nitex.service.BookService;
 import com.mehedi.nitex.service.UserService;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.StringUtils;
@@ -32,11 +35,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private Logger LOGGER = LoggerFactory.getLogger(getClass());
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
+    private BookService bookService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository,BookService bookService, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.bookService = bookService;
     }
 
     // load user by username
@@ -99,6 +104,28 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         currentUser.setEmail(newEmail);
         userRepository.save(currentUser);
         return currentUser;
+    }
+
+    // add book in user collection
+    @Override
+    public User addCollection(Book book, String username) throws NotFoundException, UserNotFoundException {
+        Book exist = bookService.checkBookExist(book.getId());
+        User user = checkUserExist(username);
+        user.getCollections().add(exist);
+        exist.getCollects().add(user);
+        userRepository.save(user);
+        return user;
+    }
+
+    // remove book from user collection
+    @Override
+    public User removeCollection(Book book, String username) throws NotFoundException, UserNotFoundException {
+        Book exist = bookService.checkBookExist(book.getId());
+        User user = checkUserExist(username);
+        user.getCollections().remove(exist);
+        exist.getCollects().remove(user);
+        userRepository.save(user);
+        return user;
     }
 
     // encoded password

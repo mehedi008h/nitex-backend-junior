@@ -1,8 +1,10 @@
 package com.mehedi.nitex.service;
 
 import com.mehedi.nitex.exceptions.model.EmailExistException;
+import com.mehedi.nitex.exceptions.model.NotFoundException;
 import com.mehedi.nitex.exceptions.model.UserNotFoundException;
 import com.mehedi.nitex.exceptions.model.UsernameExistException;
+import com.mehedi.nitex.model.Book;
 import com.mehedi.nitex.model.User;
 
 
@@ -18,4 +20,7 @@ public interface UserService {
             String newUsername,
             String newEmail
             ) throws UserNotFoundException, UsernameExistException, EmailExistException;
+
+    User addCollection(Book book,String username) throws NotFoundException,UserNotFoundException;
+    User removeCollection(Book book,String username) throws NotFoundException,UserNotFoundException;
 }

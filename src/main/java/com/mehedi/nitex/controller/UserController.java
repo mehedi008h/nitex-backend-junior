@@ -2,8 +2,10 @@ package com.mehedi.nitex.controller;
 
 import com.mehedi.nitex.exceptions.ExceptionHandling;
 import com.mehedi.nitex.exceptions.model.EmailExistException;
+import com.mehedi.nitex.exceptions.model.NotFoundException;
 import com.mehedi.nitex.exceptions.model.UserNotFoundException;
 import com.mehedi.nitex.exceptions.model.UsernameExistException;
+import com.mehedi.nitex.model.Book;
 import com.mehedi.nitex.model.User;
 import com.mehedi.nitex.model.UserPrincipal;
 import com.mehedi.nitex.service.UserService;
@@ -57,10 +59,26 @@ public class UserController extends ExceptionHandling {
 
     // update user
     @PutMapping("/update")
-    public ResponseEntity<User> update(@RequestBody User user,Principal principal
+    public ResponseEntity<User> update(@RequestBody User user, Principal principal
     ) throws UserNotFoundException, UsernameExistException, EmailExistException {
         User updatedUser = userService.updateUser(principal.getName(), user.getFullName(), user.getUsername(), user.getEmail());
         return new ResponseEntity<>(updatedUser, OK);
+    }
+
+    // add book in user collection
+    @PutMapping("/add-book")
+    public ResponseEntity<User> addBook(@RequestBody Book book, Principal principal
+    ) throws UserNotFoundException, NotFoundException {
+        User add = userService.addCollection(book, principal.getName());
+        return new ResponseEntity<>(add, OK);
+    }
+
+    // add book in user collection
+    @PutMapping("/remove-book")
+    public ResponseEntity<User> removeBook(@RequestBody Book book, Principal principal
+    ) throws UserNotFoundException, NotFoundException {
+        User add = userService.removeCollection(book, principal.getName());
+        return new ResponseEntity<>(add, OK);
     }
 
     // get jwt token

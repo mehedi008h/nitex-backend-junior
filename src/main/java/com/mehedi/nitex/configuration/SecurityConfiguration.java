@@ -22,6 +22,7 @@ import static com.mehedi.nitex.constant.SecurityConstant.PUBLIC_URLS;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
     private JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;

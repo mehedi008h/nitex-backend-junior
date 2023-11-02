@@ -1,5 +1,6 @@
 package com.mehedi.nitex.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -8,6 +9,8 @@ import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Entity(name = "User")
@@ -37,6 +40,14 @@ public class User implements
     private String[] authorities;
     private boolean isActive;
     private boolean isNotLocked;
+
+    // Many-to-many relation between book
+    @ManyToMany
+    @JoinTable(
+            name = "book_collection",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id"))
+    Set<Book> collections;
 
     public Long getId() {
         return id;
@@ -116,5 +127,13 @@ public class User implements
 
     public void setNotLocked(boolean notLocked) {
         isNotLocked = notLocked;
+    }
+
+    public Set<Book> getCollections() {
+        return collections;
+    }
+
+    public void setCollections(Set<Book> collections) {
+        this.collections = collections;
     }
 }
