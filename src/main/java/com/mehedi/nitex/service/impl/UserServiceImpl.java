@@ -1,12 +1,17 @@
 package com.mehedi.nitex.service.impl;
 
+import com.mehedi.nitex.exceptions.model.EmailExistException;
+import com.mehedi.nitex.exceptions.model.UserNotFoundException;
+import com.mehedi.nitex.exceptions.model.UsernameExistException;
 import com.mehedi.nitex.model.User;
 import com.mehedi.nitex.model.UserPrincipal;
 import com.mehedi.nitex.repository.UserRepository;
 import com.mehedi.nitex.service.UserService;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +21,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+
+import static com.mehedi.nitex.constant.UserImplConstant.*;
 import static com.mehedi.nitex.enumration.Role.ROLE_USER;
 
 @Service
@@ -27,7 +34,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserServiceImpl( UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -47,8 +54,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
     }
 
+    // register user
     @Override
-    public User register(String fullName, String username, String email, String password) {
+    public User register(String fullName, String username, String email, String password) throws UserNotFoundException, EmailExistException, UsernameExistException {
+        validateNewUsernameAndEmail(EMPTY, username, email);
         User user = new User();
         user.setFullName(fullName);
         user.setUsername(username);
@@ -60,7 +69,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.save(user);
         return user;
     }
-
 
     // find user by username
     @Override
@@ -79,5 +87,30 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return passwordEncoder.encode(password);
     }
 
-
+    // check email or username is valid or not
+    private User validateNewUsernameAndEmail(String currentUsername, String newUsername, String newEmail) throws UserNotFoundException, UsernameExistException, EmailExistException {
+        User userByNewUsername = findUserByUsername(newUsername);
+        User userByNewEmail = findUserByEmail(newEmail);
+        if (StringUtils.isNotBlank(currentUsername)) {
+            User currentUser = findUserByUsername(currentUsername);
+            if (currentUser == null) {
+                throw new UserNotFoundException(NO_USER_FOUND_BY_USERNAME + currentUsername);
+            }
+            if (userByNewUsername != null && !currentUser.getId().equals(userByNewUsername.getId())) {
+                throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
+            }
+            if (userByNewEmail != null && !currentUser.getId().equals(userByNewEmail.getId())) {
+                throw new EmailExistException(EMAIL_ALREADY_EXISTS);
+            }
+            return currentUser;
+        } else {
+            if (userByNewUsername != null) {
+                throw new UsernameExistException(USERNAME_ALREADY_EXISTS);
+            }
+            if (userByNewEmail != null) {
+                throw new EmailExistException(EMAIL_ALREADY_EXISTS);
+            }
+            return null;
+        }
+    }
 }
